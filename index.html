@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LUNAR | Space arcade</title>
+<meta name="description" content="LUNAR: explore the real Solar System in 3D, drive NASA’s Curiosity rover on the Moon, Mars and Earth, play five space games and discover 1,000 cosmic events.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Cpath d='M32 6 L36 28 L58 32 L36 36 L32 58 L28 36 L6 32 L28 28Z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-view="home">
+<canvas id="space" aria-hidden="true"></canvas>
+<div id="flash" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="app">
+  <header class="top">
+    <a class="brand" href="#">LUNAR</a>
+    <nav class="nav" aria-label="Main">
+      <a href="#" data-v="solar">Explore</a>
+      <a href="#games" data-v="home">Games</a>
+      <a href="#universes">Universes</a>
+      <a href="#codex">Codex</a>
+      <a href="#leaderboard">Leaderboard</a>
+      <a href="#settings">Settings</a>
+    </nav>
+    <button class="ghost player" id="playerBtn" title="Change your name">Player</button>
+  </header>
+
+  <main>
+    <!-- SOLAR SYSTEM EXPLORER -->
+    <section class="view" id="view-solar" aria-label="Solar System explorer">
+      <div id="solar-labels" class="solar-labels"></div>
+      <div class="solar-bar interactive">
+        <div class="chips" id="solar-speed" role="group" aria-label="Simulation speed">
+          <button class="chip" data-s="0">Pause</button>
+          <button class="chip" data-s="1" aria-pressed="true">1×</button>
+          <button class="chip" data-s="10">10×</button>
+          <button class="chip" data-s="50">50×</button>
+        </div>
+        <button class="ghost" id="solar-back" hidden>Back to Solar System</button>
+      </div>
+      <p class="solar-hint">Drag to orbit, scroll to zoom, right-drag to pan. Click a planet to fly to it. Sizes and distances are not to scale.</p>
+      <p class="solar-flag" id="solar-hires" hidden>Loading high-resolution map…</p>
+      <p class="solar-flag warn" id="solar-warn" hidden>A few planet maps couldn’t be loaded right now, so those show a plain color. Try reloading in a minute.</p>
+      <aside class="planet-panel interactive" id="planet-panel" hidden aria-live="polite">
+        <button class="pp-close" id="pp-close" aria-label="Close and go back to the Solar System">×</button>
+        <span class="pp-type" id="pp-type"></span>
+        <h2 id="pp-name"></h2>
+        <p id="pp-blurb"></p>
+        <dl id="pp-facts"></dl>
+        <button class="go" id="pp-land" hidden>Land</button>
+        <p class="sub small" id="pp-note"></p>
+      </aside>
+    </section>
+
+    <!-- ROVER -->
+    <section class="view" id="view-rover" aria-label="Rover driving">
+      <div class="rv-hud interactive">
+        <div class="rv-speed"><b id="rv-speed">0</b><span>km/h</span></div>
+        <div class="rv-meta"><span id="rv-planet"></span><span>Gravity <b id="rv-grav"></b></span></div>
+      </div>
+      <button class="ghost rv-exit interactive" id="rv-space">Return to space</button>
+      <p class="rv-keys">W/S drive and reverse · A/D steer · Shift boost · Space handbrake · Mouse look (click to lock) · Esc pause</p>
+      <p class="rv-status" id="rv-status"></p>
+      <div class="rv-touch interactive">
+        <button data-k="KeyA" aria-label="Steer left">◀</button><button data-k="KeyD" aria-label="Steer right">▶</button>
+        <span></span>
+        <button data-k="KeyS" aria-label="Brake or reverse">▼</button><button data-k="KeyW" aria-label="Accelerate">▲</button>
+      </div>
+      <div class="m-overlay interactive" id="rv-pause" hidden>
+        <div class="panel center">
+          <h2>Paused</h2>
+          <p class="sub small" id="rv-terrain"></p>
+          <ul class="rv-controls">
+            <li><b>W</b> accelerate</li><li><b>S</b> brake, then reverse</li><li><b>A / D</b> steer</li><li><b>Shift</b> boost</li><li><b>Space</b> handbrake</li><li><b>Mouse</b> look around</li><li><b>Esc</b> pause</li>
+          </ul>
+          <div class="modal-actions"><button class="ghost" id="rv-space2">Return to space</button><button class="go" id="rv-resume">Resume driving</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDITS -->
+    <section class="view" id="view-credits" aria-label="Credits">
+      <div class="stage">
+        <h2 class="stage-title">Credits and sources</h2>
+        <p class="lead">LUNAR uses real, existing assets for the Solar System and the rover. Each one is listed here with its license.</p>
+        <div class="credits" id="credits-list"></div>
+        <div class="panel credits-note">
+          <h3>Made in code for LUNAR</h3>
+          <p class="sub">The arcade starfield, universes and the 1,000 events are drawn in code. Rover terrain is generated in code from each world’s real gravity and colors: Earth is a small island with grass, trees, a lake and the sea, Mars is open sand dunes, and the Moon is cratered regolith. None of them is a map of a real location, and the trees, grass and water are simple shapes made for LUNAR. Distances and sizes in the Solar System view are compressed so you can see everything at once.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOME -->
+    <section class="view" id="view-home" aria-label="Game list">
+      <div class="hero">
+        <h1>LUNAR</h1>
+        <p>Five games in a live 3D sky, 1,000 cosmic events to discover and a million universes to explore. Push past 50 clicks in the speed test and watch space fall apart.</p>
+      </div>
+      <div class="games">
+        <a class="card" href="#cps">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="8" fill="currentColor"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".5"/><circle cx="20" cy="20" r="19" fill="none" stroke="currentColor" stroke-width="1" opacity=".25"/></svg>
+          <h3>Click speed</h3>
+          <p>Clicks per second, timed or with no limit. Hit 50 clicks and events start firing.</p>
+          <span class="best" id="best-cps"></span>
+        </a>
+        <a class="card" href="#meteors">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 32 L22 18" stroke="currentColor" stroke-width="1.5" opacity=".5"/><path d="M4 28 L16 16" stroke="currentColor" stroke-width="1" opacity=".3"/><path d="M24 9 L32 11 L35 19 L30 27 L21 27 L17 19 Z" fill="currentColor"/></svg>
+          <h3>Meteor defense</h3>
+          <p>Asteroids fly straight at you in 3D. Blast them before impact.</p>
+          <span class="best" id="best-meteors"></span>
+        </a>
+        <a class="card" href="#reaction">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 L23 17 L37 20 L23 23 L20 37 L17 23 L3 20 L17 17 Z" fill="currentColor"/></svg>
+          <h3>Reaction time</h3>
+          <p>Wait for the flash, then click. Five rounds, averaged.</p>
+          <span class="best" id="best-reaction"></span>
+        </a>
+        <a class="card" href="#aim">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20 2 V12 M20 28 V38 M2 20 H12 M28 20 H38" stroke="currentColor" stroke-width="1.5"/><circle cx="20" cy="20" r="2.5" fill="currentColor"/></svg>
+          <h3>Star aim</h3>
+          <p>Hit 25 stars as they pop up across the field. Speed and accuracy.</p>
+          <span class="best" id="best-aim"></span>
+        </a>
+        <a class="card" href="#memory">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 30 L13 18 L22 22 L28 9 L36 14" fill="none" stroke="currentColor" stroke-width="1" opacity=".5"/><g fill="currentColor"><circle cx="5" cy="30" r="2.5"/><circle cx="13" cy="18" r="3"/><circle cx="22" cy="22" r="2.5"/><circle cx="28" cy="9" r="3.5"/><circle cx="36" cy="14" r="2"/></g></svg>
+          <h3>Constellation</h3>
+          <p>Stars light up in a pattern. Repeat it. It gets longer every level.</p>
+          <span class="best" id="best-memory"></span>
+        </a>
+        <a class="card alt" href="#universes">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="13" cy="15" r="6" fill="currentColor"/><circle cx="29" cy="27" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="29" cy="27" rx="9" ry="2.5" fill="none" stroke="currentColor" stroke-width="1" opacity=".6"/><circle cx="31" cy="9" r="1.5" fill="currentColor"/><circle cx="7" cy="31" r="1" fill="currentColor"/></svg>
+          <h3>Universes</h3>
+          <p>Eight hand-built universes and a million generated ones. Different stars, suns and planets in each.</p>
+          <span class="best" id="best-universes"></span>
+        </a>
+        <a class="card alt" href="#codex">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><g fill="currentColor"><rect x="4" y="4" width="8" height="8" rx="2"/><rect x="16" y="4" width="8" height="8" rx="2" opacity=".35"/><rect x="28" y="4" width="8" height="8" rx="2"/><rect x="4" y="16" width="8" height="8" rx="2" opacity=".35"/><rect x="16" y="16" width="8" height="8" rx="2"/><rect x="28" y="16" width="8" height="8" rx="2" opacity=".35"/><rect x="4" y="28" width="8" height="8" rx="2"/><rect x="16" y="28" width="8" height="8" rx="2" opacity=".35"/><rect x="28" y="28" width="8" height="8" rx="2" opacity=".35"/></g></svg>
+          <h3>Codex</h3>
+          <p>Every event you trigger gets logged. Collect all 1,000 and replay any of them.</p>
+          <span class="best" id="best-codex"></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- CLICK SPEED -->
+    <section class="view" id="view-cps" aria-label="Click speed test">
+      <div class="stage">
+        <h2 class="stage-title">Click speed</h2>
+        <div class="lab">
+          <div class="padzone">
+            <button class="pad" id="pad" aria-label="Click as fast as you can"><span class="pad-inner"><b id="padNum">0</b><span id="padLabel">Click to start</span></span></button>
+            <div class="fx" id="padFx"></div>
+            <div class="hint" id="cps-hint">The timer starts on your first click</div>
+          </div>
+          <div class="panel">
+            <p class="lead">Pick a length or go with no limit, then click the circle as fast as you can. Past 50 clicks, cosmic events start firing. No-limit runs end when you press Stop or after 5 seconds without a click.</p>
+            <div class="chips" id="cps-chips" role="group" aria-label="Test length">
+              <button class="chip" data-d="1">1 s</button>
+              <button class="chip" data-d="5">5 s</button>
+              <button class="chip" data-d="10" aria-pressed="true">10 s</button>
+              <button class="chip" data-d="30">30 s</button>
+              <button class="chip" data-d="60">60 s</button>
+              <button class="chip" data-d="0">No limit</button>
+              <button class="ghost stop" id="cps-stop" hidden>Stop</button>
+            </div>
+            <div class="readout">
+              <div><b id="cps-clicks">0</b><span>clicks</span></div>
+              <div><b id="cps-time">10.0</b><span id="cps-time-label">seconds left</span></div>
+              <div><b id="cps-rate">0.0</b><span>clicks/sec</span></div>
+            </div>
+            <div class="bar" id="cps-barwrap"><i id="cps-bar"></i></div>
+            <div class="result" id="cps-result" aria-live="polite"><p class="sub">Your rank shows up here when time runs out.</p></div>
+            <div class="small" id="cps-best"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METEOR DEFENSE -->
+    <section class="view" id="view-meteors" aria-label="Meteor defense">
+      <div class="hud">
+        <div><span class="hud-label">Score</span><b id="m-score">0</b></div>
+        <div><span class="hud-label">Hull</span><b id="m-lives">♥♥♥</b></div>
+      </div>
+      <div class="m-overlay interactive" id="m-overlay">
+        <div class="panel center">
+          <h2 id="m-title">Meteor defense</h2>
+          <p id="m-text">Asteroids are coming straight at you. Click them before they hit. Three impacts and it’s over. White crystals are worth 5 points. Press Esc to pause.</p>
+          <button class="go" id="m-btn">Start</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- REACTION -->
+    <section class="view" id="view-reaction" aria-label="Reaction time">
+      <div class="stage">
+        <h2 class="stage-title">Reaction time</h2>
+        <div class="r-zone" id="r-zone" tabindex="0" role="button" data-state="idle">
+          <b id="r-main">Click to start</b>
+          <span id="r-sub"></span>
+        </div>
+        <ol class="r-list" id="r-list" aria-label="Round times"></ol>
+      </div>
+    </section>
+
+    <!-- AIM -->
+    <section class="view" id="view-aim" aria-label="Star aim">
+      <div class="stage">
+        <h2 class="stage-title">Star aim</h2>
+        <div class="a-stats">
+          <div><b id="a-left">25</b><span>stars left</span></div>
+          <div><b id="a-acc">100%</b><span>accuracy</span></div>
+          <div><b id="a-time">0.00</b><span>seconds</span></div>
+        </div>
+        <div class="a-zone" id="a-zone">
+          <button class="a-target" id="a-target" hidden aria-label="Star target"><svg viewBox="0 0 40 40"><path d="M20 1 L24 16 L39 20 L24 24 L20 39 L16 24 L1 20 L16 16 Z"/></svg></button>
+          <div class="a-center"><p id="a-info"></p><button class="go" id="a-start">Start</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEMORY -->
+    <section class="view" id="view-memory" aria-label="Constellation memory">
+      <div class="stage">
+        <h2 class="stage-title">Constellation</h2>
+        <div class="panel mem">
+          <div class="mem-head">
+            <div><p class="mem-main" id="mem-main"></p><p class="sub" id="mem-sub"></p></div>
+            <div class="mem-level"><b id="mem-level">0</b><span>level</span></div>
+          </div>
+          <svg id="mem-svg" viewBox="0 0 640 400" role="group" aria-label="Constellation"></svg>
+          <div class="mem-foot"><button class="go" id="mem-btn">Start</button></div>
+        </div>
+      </div>
+    </section>
+    <!-- UNIVERSES -->
+    <section class="view" id="view-universes" aria-label="Universes">
+      <div class="stage">
+        <h2 class="stage-title">Universes</h2>
+        <p class="lead">You’re in <b id="u-current"></b>. Each universe has its own stars, Milky Way, suns, planets, galaxies and asteroids.</p>
+        <div class="games" id="u-grid"></div>
+        <div class="panel u-random">
+          <h3>A million more</h3>
+          <p class="sub">Every seed from 0 to 999999 builds a different universe. Write down a seed to come back to one you like.</p>
+          <div class="u-row">
+            <button class="go" id="u-rand">Jump to a random universe</button>
+            <label class="u-seed"><span>Seed</span><input id="u-seed" inputmode="numeric" maxlength="6" placeholder="e.g. 48213"></label>
+            <button class="ghost" id="u-seed-go">Travel</button>
+          </div>
+          <div id="u-history"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CODEX -->
+    <section class="view" id="view-codex" aria-label="Codex">
+      <div class="stage">
+        <h2 class="stage-title">Codex</h2>
+        <p class="lead"><b id="cx-count">0</b> of 1,000 events discovered. Events fire in the click speed test, every 50 points in Meteor defense and on long Constellation streaks. Click any discovered square to replay it.</p>
+        <div class="bar cx-progress"><i id="cx-bar"></i></div>
+        <div class="cx-recent chips" id="cx-recent"></div>
+        <div class="cx-groups" id="cx-groups"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings" aria-label="Settings">
+      <div class="stage">
+        <h2 class="stage-title">Settings</h2>
+        <div class="set-grid">
+          <div class="panel set">
+            <h3>Player</h3>
+            <div class="set-row"><span>Name: <b id="set-name-val"></b></span><button class="ghost" id="set-name">Change name</button></div>
+          </div>
+          <div class="panel set">
+            <h3>Sound</h3>
+            <div class="set-row"><span>Sound effects</span><div class="chips" data-set="sound"><button class="chip" data-v="true">On</button><button class="chip" data-v="false">Off</button></div></div>
+            <div class="set-row"><label for="set-vol">Volume <b id="set-vol-val"></b></label><input type="range" id="set-vol" min="0" max="100" step="5"></div>
+          </div>
+          <div class="panel set">
+            <h3>Click speed</h3>
+            <div class="set-row col"><span>Default time limit</span><div class="chips" data-set="cpsDefault"><button class="chip" data-v="1">1 s</button><button class="chip" data-v="5">5 s</button><button class="chip" data-v="10">10 s</button><button class="chip" data-v="30">30 s</button><button class="chip" data-v="60">60 s</button><button class="chip" data-v="0">No limit</button></div></div>
+            <div class="set-row col"><span>Events start at</span><div class="chips" data-set="chaosAt"><button class="chip" data-v="10">10 clicks</button><button class="chip" data-v="25">25 clicks</button><button class="chip" data-v="50">50 clicks</button><button class="chip" data-v="100">100 clicks</button></div></div>
+            <div class="set-row col"><span>Then a new event every</span><div class="chips" data-set="chaosEvery"><button class="chip" data-v="3">3 clicks</button><button class="chip" data-v="6">6 clicks</button><button class="chip" data-v="12">12 clicks</button><button class="chip" data-v="24">24 clicks</button></div></div>
+          </div>
+          <div class="panel set">
+            <h3>Space</h3>
+            <div class="set-row col"><span>Random events on their own, every 30 seconds</span><div class="chips" data-set="ambient"><button class="chip" data-v="false">Off</button><button class="chip" data-v="true">On</button></div></div>
+            <div class="set-row col"><span>Camera drift</span><div class="chips" data-set="motion"><button class="chip" data-v="true">On</button><button class="chip" data-v="false">Off</button></div></div>
+            <div class="set-row col"><span>Graphics quality</span><div class="chips" data-set="quality"><button class="chip" data-v="low">Low</button><button class="chip" data-v="medium">Medium</button><button class="chip" data-v="high">High</button></div></div>
+          </div>
+          <div class="panel set">
+            <h3>Data</h3>
+            <p class="sub">Everything is saved in this browser. These can’t be undone.</p>
+            <div class="set-row"><span>Scores and leaderboard</span><button class="ghost danger" id="set-reset-scores">Reset scores</button></div>
+            <div class="set-row"><span>Discovered events</span><button class="ghost danger" id="set-reset-codex">Reset codex</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="view" id="view-leaderboard" aria-label="Leaderboard">
+      <div class="stage">
+        <h2 class="stage-title">Leaderboard</h2>
+        <div class="chips" id="lb-games" role="group" aria-label="Game">
+          <button class="chip" data-g="cps">Click speed</button>
+          <button class="chip" data-g="meteors">Meteor defense</button>
+          <button class="chip" data-g="reaction">Reaction time</button>
+          <button class="chip" data-g="aim">Star aim</button>
+          <button class="chip" data-g="memory">Constellation</button>
+        </div>
+        <div class="chips" id="lb-durs" role="group" aria-label="Test length">
+          <button class="chip" data-d="1">1 s</button>
+          <button class="chip" data-d="5">5 s</button>
+          <button class="chip" data-d="10">10 s</button>
+          <button class="chip" data-d="30">30 s</button>
+          <button class="chip" data-d="60">60 s</button>
+          <button class="chip" data-d="inf">No limit</button>
+        </div>
+        <div class="panel lb-panel">
+          <div class="lb-scroll">
+            <table class="lb">
+              <thead><tr><th>Rank</th><th>Player</th><th>Score</th><th>Date</th></tr></thead>
+              <tbody id="lb-body"></tbody>
+            </table>
+          </div>
+          <p class="sub" id="lb-empty"></p>
+        </div>
+        <p class="small">Top 25 runs per game, saved on this device. Everyone who plays here shows up.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">LUNAR © <span id="year"></span>. Scores are saved in your browser only. <a href="#credits">Credits and sources</a>.</footer>
+</div>
+
+<div class="ex-loading" id="ex-loading" hidden role="status" aria-live="polite">
+  <div class="panel center">
+    <h2 id="ex-ld-title">Loading</h2>
+    <div class="bar"><i id="ex-ld-bar"></i></div>
+    <p class="sub" id="ex-ld-text"></p>
+    <p class="err" id="ex-ld-err"></p>
+    <div class="modal-actions"><button class="ghost" id="ex-ld-btn" hidden>Continue</button><button class="go" id="ex-ld-pick" hidden>Choose curiosity.glb</button></div>
+    <input type="file" id="ex-ld-file" accept=".glb,model/gltf-binary" hidden>
+  </div>
+</div>
+
+<div class="modal" id="nameModal" hidden role="dialog" aria-modal="true" aria-labelledby="nm-title">
+  <form class="panel center" id="nameForm" novalidate>
+    <h2 id="nm-title">Welcome to LUNAR</h2>
+    <p>Type your name so your scores show up on the leaderboard.</p>
+    <label class="sr" for="nameInput">Your name</label>
+    <input id="nameInput" type="text" maxlength="16" autocomplete="nickname" placeholder="Your name" spellcheck="false">
+    <p class="err" id="nameErr" aria-live="polite"></p>
+    <div class="modal-actions">
+      <button class="ghost" type="button" id="nameCancel" hidden>Cancel</button>
+      <button class="go" type="submit">Start playing</button>
+    </div>
+  </form>
+</div>
+
+<noscript><p class="noscript">LUNAR needs JavaScript to run.</p></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+<script src="assets/js/assets-config.js"></script>
+<script src="assets/js/scene.js"></script>
+<script src="assets/js/explore.js"></script>
+<script src="assets/js/games.js"></script>
+</body>
+</html>
